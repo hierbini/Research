@@ -18,6 +18,7 @@ from image_registration.fft_tools.shift import shiftnd, shift2d
 from scipy.interpolate import interp2d, RectBivariateSpline, NearestNDInterpolator, griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from Tool_Box import Convert
+from feature_locator import Feature_Locator, Cloud_Locator
 
 def lat_lon(x,y,ob_lon,ob_lat,pixscale_km,np_ang,req,rpol):
     '''Find latitude and longitude on planet given x,y pixel locations and
@@ -150,7 +151,8 @@ class CoordGrid:
         self.surf_n = surface_normal(self.lat_g, self.lon_e, self.ob_lon)
         self.mu = emission_angle(self.ob_lat, self.surf_n)
         
-        self.feature_locator = Feature_Locator(self)
+        self.feature_locator = Feature_Locator(self, lat_dimensions = [-90, 90], lon_dimensions = [0, 350])
+        self.cloud_locator = Cloud_Locator(self)
 
     def edge_detect(self, low_thresh = 0.01, high_thresh = 0.05, sigma = 3, plot = False, xs = 500 ,ys = 700, s = 500):
         '''Uses skimage canny algorithm to find edges of planet, correlates
@@ -357,8 +359,7 @@ class CoordGrid:
         ### remember to add back outfname, after ctr
         
         #apply center longitude to everything
-        npix = self.projected.shape[1]
-        npix_per_degree = 1.0 / self.deg_per_px
+        npix, npix_per_degree = self.projected.shape[1], 1.0 / self.deg_per_px
         print(npix_per_degree)
         offset = (ctrlon + 180)%360
         offsetpix = int(np.round(offset*npix_per_degree))
@@ -390,7 +391,7 @@ class CoordGrid:
         ax0.tick_params(which = 'both', labelsize = fs - 2)
 
         #Plot cloud center
-        self.feature_locator.plot_cloud_center()
+        self.cloud_locator.plot_cloud_center()
         
         #plot the colorbar
         divider = make_axes_locatable(ax0)
@@ -464,65 +465,3 @@ class CoordGrid:
         plt.savefig(outstem+'_proj.png', bbox = None)
         plt.show()
         '''
-    
-class Feature_Locator:
-
-    def __init__(self, coordgrid, lat_dimensions = [-90, 90], lon_dimensions = [0, 360]):
-        self.coordgrid = coordgrid
-        self.lat_dimensions = lat_dimensions
-        self.lon_dimensions = lon_dimensions
-        self.pixels_per_degree = 1.0 / self.coordgrid.deg_per_px
-        self.get_minimum_maximum = lambda dimensions: (int(dimensions[0]), int(dimensions[1]))
-
-    def create_search_box(self, lat_dimensions, lon_dimensions):
-        '''Returns search box with lattitude and longitude dimensions but in pixel scale. '''
-        lat_dimensions, lon_dimensions = Convert.dimensions_to_pixels(lat_dimensions, lon_dimensions, self.pixels_per_degree)
-        min_lat, max_lat = self.get_minimum_maximum(lat_dimensions)
-        min_lon, max_lon = self.get_minimum_maximum(lon_dimensions)
-        search_box = self.coordgrid.projected[min_lat:max_lat, min_lon:max_lon]
-        return search_box
-
-    def brightest_pixel_coordinates(self, search_box):
-        indices = np.nanargmax(search_box)
-        coordinates = np.unravel_index(indices, np.shape(search_box))
-        return coordinates
-
-    def announce_cloud_center(self, lattitude, longitude):
-        return 'Cloud center is {0} degrees lattitude and {1} degrees longitude.'.format(lattitude, longitude)
-
-    def find_latlon_of_cloud_center(self):
-        ''' Searches within box of specified dimensions and returns the lattitude and longitude of the 
-        brightest pixel on the cloud '''
-        search_box = self.create_search_box(self.lat_dimensions, self.lon_dimensions)
-        found_coordinates = self.brightest_pixel_coordinates(search_box)
-        longitude, lattitude = Convert.pixels_to_degrees(found_coordinates, self.pixels_per_degree)
-        print(self.announce_cloud_center(lattitude, longitude))
-        return lattitude, longitude
-
-    def plot_cloud_center(self):
-        cloud_center_lat, cloud_center_lon = self.find_latlon_of_cloud_center()
-        plt.axvline(cloud_center_lon, color = 'k')
-        plt.axhline(cloud_center_lat, color = 'k')
-
-class CloudFeature:
-
-    def __init__(self, coordgrid, feature_locator):
-        self.coordgrid = coordgrid
-        self.feature_locator = feature_locator
-
-    def correct_rotation(self):
-        ''' In the case that we need to compare two images, they should be temporally aligned. However, 
-        due to time in between observations, we have to take into account planet's rotation. This function 
-        returns something that corrects this rotation, allowing images to be aligned'''
-
-class H_K_Fraction(CloudFeature):
-
-    def __init__(self, neptune_infile, uranus_infile):
-        self.neptune_infile = neptune_infile
-        self.uranus_infile = uranus_infile
-
-    def calculate_H_K_fraction(self, search_box, lat_dimensions, lon_dimensions):
-        ''' This function will draw a box of specified longitudinal and lattitudinal dimensions on the
-        projected image and calculate the H/K fraction of each pixel within this box''' 
-
-    

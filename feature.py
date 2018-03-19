@@ -17,6 +17,7 @@ from image_registration.fft_tools.shift import shiftnd, shift2d
 from scipy.interpolate import interp2d, RectBivariateSpline, NearestNDInterpolator, griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from feature_locator import Feature_Locator
+from coordgrid import CoordGrid
 from Tool_Box import Convert
 
 
