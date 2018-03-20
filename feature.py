@@ -18,7 +18,7 @@ from scipy.interpolate import interp2d, RectBivariateSpline, NearestNDInterpolat
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from feature_locator import Feature_Locator
 from coordgrid import CoordGrid
-from Tool_Box import Convert
+#from Tool_Box import Convert
 
 
 class CloudFeature:
@@ -27,10 +27,18 @@ class CloudFeature:
         self.coordgrid = coordgrid
         self.feature_locator = feature_locator
 
-    def correct_rotation(self):
-        ''' In the case that we need to compare two images, they should be temporally aligned. However, 
-        due to time in between observations, we have to take into account planet's rotation. This function 
-        returns something that corrects this rotation, allowing images to be aligned'''
+    def correct_planets_rotation(self, planet):
+        ''' In the case that we need to compare two images, the images should be aligned. However, 
+        due to time in between observations, one image may be shifted because of planetary rotation.
+        This function returns something that corrects this rotation.'''
+
+        '''
+        use middle file for now
+        '''
+        
+    def write_file(self, outfile):
+        '''Adds to HDUlist of original image?'''
+        hdulist_data = pyfits.PrimaryHDU(self.coordgrid.data, header = self.header)
 
 class H_K_Fraction(CloudFeature):
 
@@ -39,5 +47,5 @@ class H_K_Fraction(CloudFeature):
         self.uranus_infile = uranus_infile
 
     def calculate_H_K_fraction(self, search_box, lat_dimensions, lon_dimensions):
-        ''' This function will draw a box of specified longitudinal and lattitudinal dimensions on the
+        ''' This function will draw a box of specified longitudinal and latitudinal dimensions on the
         projected image and calculate the H/K fraction of each pixel within this box''' 
