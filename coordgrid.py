@@ -15,7 +15,7 @@ from image_registration.chi2_shifts import chi2_shift
 from image_registration.fft_tools.shift import shift2d
 from scipy.interpolate import griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from featurelocator import FeatureLocator, CloudLocator
+from feature_locator import FeatureLocator, CloudLocator
 
 def lat_lon(x, y, ob_lon, ob_lat, pixscale_km, np_ang, req, rpol):
     '''Find latitude and longitude on planet given x,y pixel locations and

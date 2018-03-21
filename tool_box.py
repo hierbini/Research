@@ -35,19 +35,18 @@ class Path:
     def path_to_infile(self):
         return self.infile_directory
 
-class Planet:
-
-    def __init__(self, name, polar_radius, equatorial_radius, rotational_velocity, pixels_per_km):
-        self.name = name
-        self.rotational_velocity = rotational_velocity # km/s
-        self.polar_radius = polar_radius # km
-        self.equatorial_radius = equatorial_radius # km
-        self.pixel_per_km = pixels_per_km
-
-class Neptune(Planet):
+class Neptune:
 
     def __init__(self):
         self.name = 'Neptune'
         self.rotational_velocity = 2.86
         self.polar_radius = 24341
         self.equatorial_radius = 24764
+
+class Uranus:
+
+    def __init__(self):
+        self.name = 'Uranus'
+        self.rotational_velocity = 2.59
+        self.polar_radius = 24973
+        self.equatorial_radius = 25559

@@ -6,11 +6,11 @@ sys.path.append("C:\\Python36\\lib\\site-packages")
 
 import numpy as np
 import matplotlib.pyplot as plt
-from Tool_Box import Convert
+from tool_box import Convert
 
 class FeatureLocator:
 
-    def __init__(self, coordgrid, lat_dimensions = [0, 40], lon_dimensions = [200, 300]):
+    def __init__(self, coordgrid, lat_dimensions = (-90, 90), lon_dimensions = (0, 360)):
         self.coordgrid = coordgrid
         self.lat_dimensions = lat_dimensions
         self.lon_dimensions = lon_dimensions
@@ -18,7 +18,7 @@ class FeatureLocator:
         self.get_minimum_maximum = lambda dimensions: (int(dimensions[0]), int(dimensions[1]))
 
     def create_search_box(self, lat_dimensions, lon_dimensions):
-        '''Returns search box with lattitude and longitude dimensions but in pixel scale. '''
+        '''Returns search box with latitude and longitude dimensions but in pixel scale. '''
         lat_dimensions, lon_dimensions = Convert.dimensions_to_pixels(lat_dimensions, lon_dimensions, self.pixels_per_degree)
         min_lat, max_lat = self.get_minimum_maximum(lat_dimensions)
         min_lon, max_lon = self.get_minimum_maximum(lon_dimensions)
@@ -45,7 +45,6 @@ class FeatureLocator:
         max_lat = int(input('Input highest latitude: '))
         min_lon = int(input('Input lowest longitude: '))
         max_lon = int(input('Input highest longitude: '))
-        
         self.lat_dimensions = [min_lat, max_lat]
         self.lon_dimensions = [min_lon, max_lon]
 

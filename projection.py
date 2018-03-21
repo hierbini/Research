@@ -17,7 +17,7 @@ from scipy.interpolate import interp2d, RectBivariateSpline, NearestNDInterpolat
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from feature_locator import Feature_Locator
 from coordgrid import CoordGrid
-from Tool_Box import Convert
+from tool_box import Convert
 
 class Projection(CoordGrid):
 
