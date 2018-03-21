@@ -3,23 +3,9 @@ import os
 import sys
 sys.path.append("C:\\Python36\\lib")
 sys.path.append("C:\\Python36\\lib\\site-packages")
-import pyfits
-import numpy as np
-import matplotlib.pyplot as plt
-from astropy.io import fits
-from get_ephem import get_ephemerides, naif_lookup
-from image import Image
-from datetime import datetime, timedelta
-import warnings
-from skimage import feature
-from image_registration.chi2_shifts import chi2_shift
-from image_registration.fft_tools.shift import shiftnd, shift2d
-from scipy.interpolate import interp2d, RectBivariateSpline, NearestNDInterpolator, griddata
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from feature_locator import Feature_Locator
-from coordgrid import CoordGrid
-#from Tool_Box import Convert
 
+import pyfits
+from Tool_Box import Path
 
 class CloudFeature:
 
@@ -40,12 +26,56 @@ class CloudFeature:
         '''Adds to HDUlist of original image?'''
         hdulist_data = pyfits.PrimaryHDU(self.coordgrid.data, header = self.header)
 
-class H_K_Fraction(CloudFeature):
+class HKFraction(CloudFeature):
 
-    def __init__(self, neptune_infile, uranus_infile):
-        self.neptune_infile = neptune_infile
-        self.uranus_infile = uranus_infile
+    """
+    The Plan:
+    - get path to H and K path, use middle image
+    - project both images (no need to plot probably? or plot one image)
+    - get brightest pixel for both images
+    - get value from both images at that coordinate
+    - divide H value by K value
 
-    def calculate_H_K_fraction(self, search_box, lat_dimensions, lon_dimensions):
+    eventually:
+    - create method to correct for planet rotation
+    """
+
+    def __init__(self, planetH_path, planetK_path):
+        self.H_image = planetH_path.infile_directory + self.H_path.all_files_in_folder[2] # Using 2 as middle image
+        self.K_image = planetK_path.infile_directory + self.K_path.all_files_in_folder[2]
+        self.lat_dimensions = self.feature_locator.lat_dimensions
+        self.lon_dimensions = self.feature_locator.lon_dimensions
+
+        self.H_coordgrid = self.coordgrid.CoordGrid(self.H_image)
+        self.K_coordgrid = self.coordgrid.CoordGrid(self.K_image)
+        self.edge_detect_H_and_K()
+        self.project_H_and_K()
+
+    def edge_detect_H_and_K(self):
+        self.H_coordgrid.edge_detect()
+        self.K_coordgrid.edge_detect()
+
+    def project_H_and_K(self):
+        self.H_coordgrid.project()
+        self.K_coordgrid.project()
+
+    def get_brightest_pixel_value(self, coordgrid, lat_dimensions, lon_dimensions):
+        search_box = self.feature_locator.create_search_box(lat_dimensions, lon_dimensions)
+        brightest_pixel_coordinates = self.feature_locator.coordinates_of_brightest_pixel(search_box)
+        lat_pixel, lon_pixel = brightest_pixel_coordinates[0], brightest_pixel_coordinates[1]
+        brightest_pixel_value = coordgrid.projected[lat_pixel, lon_pixel]
+        return brightest_pixel_value
+
+    def calculate_H_K_fraction(self):
         ''' This function will draw a box of specified longitudinal and latitudinal dimensions on the
-        projected image and calculate the H/K fraction of each pixel within this box''' 
+        projected image and calculate the H/K fraction of each pixel within this box'''
+        print('Time to calculate our H/K fraction. Please specify the dimensions of your box: ')
+        self.feature_locator.user_draws_a_box()
+        H_value = self.get_brightest_pixel_value(self.H_coordgrid, self.lat_dimensions, self.lon_dimensions)
+        K_value = self.get_brightest_pixel_value(self.K_coordgrid, self.lat_dimensions, self.lon_dimensions)
+        H_K_fraction = H_value / K_value
+        return H_K_fraction
+
+
+
+

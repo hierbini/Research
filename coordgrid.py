@@ -1,26 +1,23 @@
 #!/usr/bin/env python
 
-import os
 import sys
 sys.path.append("C:\\Python36\\lib")
 sys.path.append("C:\\Python36\\lib\\site-packages")
 import pyfits
 import numpy as np
 import matplotlib.pyplot as plt
-from astropy.io import fits
 from get_ephem import get_ephemerides, naif_lookup
 from image import Image
 from datetime import datetime, timedelta
 import warnings
 from skimage import feature
 from image_registration.chi2_shifts import chi2_shift
-from image_registration.fft_tools.shift import shiftnd, shift2d
-from scipy.interpolate import interp2d, RectBivariateSpline, NearestNDInterpolator, griddata
+from image_registration.fft_tools.shift import shift2d
+from scipy.interpolate import griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from Tool_Box import Convert
-from feature_locator import Feature_Locator, Cloud_Locator
+from featurelocator import FeatureLocator, CloudLocator
 
-def lat_lon(x,y,ob_lon,ob_lat,pixscale_km,np_ang,req,rpol):
+def lat_lon(x, y, ob_lon, ob_lat, pixscale_km, np_ang, req, rpol):
     '''Find latitude and longitude on planet given x,y pixel locations and
     planet equatorial and polar radius'''
     np_ang = -np_ang
@@ -151,8 +148,8 @@ class CoordGrid:
         self.surf_n = surface_normal(self.lat_g, self.lon_e, self.ob_lon)
         self.mu = emission_angle(self.ob_lat, self.surf_n)
         
-        self.feature_locator = Feature_Locator(self)
-        self.cloud_locator = Cloud_Locator(self)
+        self.feature_locator = FeatureLocator(self)
+        self.cloud_locator = CloudLocator(self)
 
     def edge_detect(self, low_thresh = 0.01, high_thresh = 0.05, sigma = 3, plot = False, xs = 500 ,ys = 700, s = 500):
         '''Uses skimage canny algorithm to find edges of planet, correlates
@@ -177,7 +174,6 @@ class CoordGrid:
         self.centered = shift2d(self.data,-1*dx,-1*dy)
         self.edges = shift2d(edges,-1*dx,-1*dy)
         self.data_shifted = shift2d(imdata, -1*dx, -1*dy)
-        
         if plot:
             fig, (ax0, ax1, ax2) = plt.subplots(1, 3, figsize=(10, 5))
 
@@ -200,7 +196,6 @@ class CoordGrid:
             #ax2.imshow(self.edges, origin = 'lower left', alpha = 1.0)
             #ax2.imshow(self.centered, origin = 'lower left', alpha = 0.5, vmin=0,vmax=1000)
             #ax2.set_title('Overlay model and data')
-            
             plt.show()
         
     def plot_latlon(self):
@@ -273,23 +268,6 @@ class CoordGrid:
         #hdulist_out[2].header['OBJECT'] = self.im.target+'_LONGITUDES'
 
         #hdulist_out[2].writeto(outfile)
-        
-    def locate_feature(self):
-        plt.imshow(self.centered, origin = 'lower left')
-        plt.show()
-        print('Define a box around the feature you want to track. Note x,y are reversed in image due to weird Python indexing!')
-        pix_l = raw_input('Enter lower left pixel x,y separated by a comma: ')
-        pix_u = raw_input('Enter upper right pixel x,y separated by a comma: ')
-        
-        p0x, p0y = int(pix_l.split(',')[0].strip(', \n')),int(pix_l.split(',')[1].strip(', \n'))
-        p1x, p1y = int(pix_u.split(',')[0].strip(', \n')),int(pix_u.split(',')[1].strip(', \n'))
-        print(p0x,p0y,p1x,p1y)
-        maxloc = np.where(self.centered == np.max(self.centered[p0x:p1x,p0y:p1y]))
-        print(maxloc)
-        maxlat = self.lat_g[maxloc]
-        maxlon = self.lon_e[maxloc]
-        print('Brightest spot in feature is at: ')
-        print('    '+str(maxlat[0])+' latitude, '+str(maxlon[0])+' longitude')
 
     def project(self, outstem = 'h', pixsz = None, interp = 'cubic', writefile = False):
         '''Project the data onto a flat x-y grid.

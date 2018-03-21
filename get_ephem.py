@@ -17,6 +17,7 @@ import numpy as np
 from time import strftime, gmtime, time
 from datetime import datetime,timedelta
 import sys, os
+import pickle
 
 def is_number(s):
     try:
@@ -65,6 +66,16 @@ def get_ephemerides(code, obs_code, tstart, tend, stepsize) :
     tstart_UT = datetime.strftime(tstart_obj,"'%Y-%m-%d %H:%M'")
     tend_obj = datetime.strptime(tend,'%Y-%m-%d %H:%M')
     tend_UT = datetime.strftime(tend_obj,"'%Y-%m-%d %H:%M'")
+    combination = "_".join([str(code), str(obs_code), tstart_UT, tend_UT, stepsize]).replace(":", "")
+    try:
+        with open(combination, "rb") as file:
+            print("Read data from file.")
+            dictionary = pickle.load(file)
+            out = pickle.loads(dictionary["out"])
+            return out, dictionary["observatory_coords"]
+    except FileNotFoundError:
+        pass
+
 
     http = "http://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1"
     make_ephem = "&MAKE_EPHEM='YES'&TABLE_TYPE='OBSERVER'"
@@ -102,6 +113,15 @@ def get_ephemerides(code, obs_code, tstart, tend, stepsize) :
                 data.append(ephem[i].split(','))
     try:
         out = np.asarray(data)[:,:-1]
-        return out, observatory_coords
     except:
         sys.exit('ERROR: Ephemeris data not found. Check that the target has valid ephemeris data for the specified time range.')
+
+    save_local_results(combination, out, observatory_coords)
+    return out, observatory_coords
+
+def save_local_results(filename, out, observatory_coords):
+    serialized_array = pickle.dumps(out, protocol=0)
+    output_dictionary = {"out" : serialized_array, "observatory_coords" : observatory_coords}
+    output = pickle.dumps(output_dictionary, protocol=0)
+    with open(filename, "wb") as file:
+        file.write(output)

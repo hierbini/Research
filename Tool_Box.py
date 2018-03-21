@@ -3,20 +3,7 @@ import os
 import sys
 sys.path.append("C:\\Python36\\lib")
 sys.path.append("C:\\Python36\\lib\\site-packages")
-import pyfits
-import numpy as np
-import matplotlib.pyplot as plt
-from astropy.io import fits
-from get_ephem import get_ephemerides, naif_lookup
-from image import Image
-from datetime import datetime, timedelta
-import warnings
-from skimage import feature
-from image_registration.chi2_shifts import chi2_shift
-from image_registration.fft_tools.shift import shiftnd, shift2d
-from scipy.interpolate import interp2d, RectBivariateSpline, NearestNDInterpolator, griddata
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-#from feature_locator import Feature_Locator
+import glob
 
 class Convert:
 
@@ -35,15 +22,27 @@ class Convert:
         lattitude = (indices[0] / pixels_per_degree) - 90 
         longitude = indices[1] / pixels_per_degree
         return longitude, lattitude
-'''
+
+class Path:
+
+    def __init__(self, date, planet_band):
+        self.reduced_folder = 'C:/Users/nguye/ResearchLab/Data/Lick/Data_Again/Reduced/'
+        self.date = date
+        self.planet_band = planet_band
+        self.infile_directory = self.reduced_folder + self.date + "/" + self.planet_band + "/"
+        self.all_files_in_folder = glob.glob(self.infile_directory + "*_red.fits")
+
+    def path_to_infile(self):
+        return self.infile_directory
+
 class Planet:
 
-    def __init__(self, name, polar_radius, equatorial_radius, rotational_velocity, pixel_per_km):
+    def __init__(self, name, polar_radius, equatorial_radius, rotational_velocity, pixels_per_km):
         self.name = name
         self.rotational_velocity = rotational_velocity # km/s
         self.polar_radius = polar_radius # km
         self.equatorial_radius = equatorial_radius # km
-        self.pixel_per_km = pixel_per_km
+        self.pixel_per_km = pixels_per_km
 
 class Neptune(Planet):
 
@@ -52,4 +51,3 @@ class Neptune(Planet):
         self.rotational_velocity = 2.86
         self.polar_radius = 24341
         self.equatorial_radius = 24764
-'''
