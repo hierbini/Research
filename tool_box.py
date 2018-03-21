@@ -4,6 +4,8 @@ import sys
 sys.path.append("C:\\Python36\\lib")
 sys.path.append("C:\\Python36\\lib\\site-packages")
 import glob
+import pickle
+import coordgrid
 
 class Convert:
 
@@ -35,18 +37,27 @@ class Path:
     def path_to_infile(self):
         return self.infile_directory
 
-class Neptune:
+class Optimizer:
 
-    def __init__(self):
-        self.name = 'Neptune'
-        self.rotational_velocity = 2.86
-        self.polar_radius = 24341
-        self.equatorial_radius = 24764
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.filename = "projection_" + filepath[-14:]
+        self.save_folder = 'C:/Users/nguye/ResearchLab/Code/Nav/SavedProjections/'
 
-class Uranus:
+    def get_projection(self, path):
+        coords = coordgrid.CoordGrid(path)
+        coords.edge_detect()
+        coords.project()
 
-    def __init__(self):
-        self.name = 'Uranus'
-        self.rotational_velocity = 2.59
-        self.polar_radius = 24973
-        self.equatorial_radius = 25559
+    def load_pickled_data_from_file(self):
+        try:
+            with open(self.save_folder + self.filename, "rb") as file:
+                print("Read data from file.")
+                return pickle.load(file)
+        except FileNotFoundError:
+            self.get_projection(self.filepath)
+
+    def save_local_file(self, out):
+        output = pickle.dumps(out, protocol=0)
+        with open(self.save_folder + self.filename, "wb") as file:
+            file.write(output)

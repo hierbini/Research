@@ -71,8 +71,7 @@ def get_ephemerides(code, obs_code, tstart, tend, stepsize) :
         with open(combination, "rb") as file:
             print("Read data from file.")
             dictionary = pickle.load(file)
-            out = pickle.loads(dictionary["out"])
-            return out, dictionary["observatory_coords"]
+            return dictionary["out"], dictionary["observatory_coords"]
     except FileNotFoundError:
         pass
 
@@ -120,8 +119,7 @@ def get_ephemerides(code, obs_code, tstart, tend, stepsize) :
     return out, observatory_coords
 
 def save_local_results(filename, out, observatory_coords):
-    serialized_array = pickle.dumps(out, protocol=0)
-    output_dictionary = {"out" : serialized_array, "observatory_coords" : observatory_coords}
+    output_dictionary = {"out" : out, "observatory_coords" : observatory_coords}
     output = pickle.dumps(output_dictionary, protocol=0)
     with open(filename, "wb") as file:
         file.write(output)

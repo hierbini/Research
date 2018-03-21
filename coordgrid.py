@@ -16,6 +16,7 @@ from image_registration.fft_tools.shift import shift2d
 from scipy.interpolate import griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from feature_locator import FeatureLocator, CloudLocator
+from tool_box import Optimizer
 
 def lat_lon(x, y, ob_lon, ob_lat, pixscale_km, np_ang, req, rpol):
     '''Find latitude and longitude on planet given x,y pixel locations and
@@ -86,6 +87,7 @@ class CoordGrid:
     
     def __init__(self, infile, pixscale = 0.033, req = 24764, rpol = 24341, centered = False):
         '''Pull ephemeris data, calculate lat and lon'''
+        self.infile_path = infile
         self.im = Image(infile)
         self.hdulist = self.im.hdulist
         self.header = pyfits.getheader(infile)
@@ -324,6 +326,9 @@ class CoordGrid:
         self.projected = datsort
         self.projected_mu = musort
 
+        projection_data = Optimizer(self.infile_path)
+        projection_data.save_local_file(self.projected)
+
         #write data to fits file   
         if writefile: 
             hdulist_out = self.im.hdulist
@@ -376,7 +381,7 @@ class CoordGrid:
             ax0.tick_params(which = 'both', labelsize = fs - 2)
 
             #Plot cloud center
-            self.cloud_locator.plot_cloud_center()
+            self.cloud_locator.plot_cloud_center(self.projected)
             
             #plot the colorbar
             divider = make_axes_locatable(ax0)

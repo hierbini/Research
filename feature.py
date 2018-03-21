@@ -11,7 +11,7 @@ class CloudFeature:
 
     def __init__(self, coordgrid, feature_locator):
         self.coordgrid = coordgrid
-        self.CloudFeature = feature_locator
+        self.feature_locator = feature_locator
 
     def correct_planets_rotation(self, planet):
         ''' In the case that we need to compare two images, the images should be aligned. However, 
@@ -24,51 +24,28 @@ class CloudFeature:
 
 class HKFraction(CloudFeature):
 
-    """
-    The Plan:
-    - get path to H and K path, use middle image
-    - project both images (no need to plot probably? or plot one image)
-    - get brightest pixel for both images
-    - get value from both images at that coordinate
-    - divide H value by K value
+    def __init__(self, H_coordgrid, K_coordgrid, H_projection, K_projection):
+        self.H_projection = H_projection
+        self.K_projection = K_projection
+        self.H_coordgrid = H_coordgrid
+        self.K_coordgrid = K_coordgrid
 
-    eventually:
-    - create method to correct for planet rotation
-    """
-
-    def __init__(self, planetH_path, planetK_path):
-        self.H_image = planetH_path.all_files_in_folder[2] # Using 2 as middle image
-        self.K_image = planetK_path.all_files_in_folder[2]
-        self.H_coordgrid = coordgrid.CoordGrid(self.H_image)
-        self.K_coordgrid = coordgrid.CoordGrid(self.K_image)
-        self.edge_detect_H_and_K()
-        self.project_H_and_K()
-
-    def edge_detect_H_and_K(self):
-        self.H_coordgrid.edge_detect()
-        self.K_coordgrid.edge_detect()
-
-    def project_H_and_K(self):
-        self.H_coordgrid.project()
-        self.K_coordgrid.project()
-
-    def get_brightest_pixel_value(self, coordgrid, lat_dimensions, lon_dimensions):
-        search_box = CloudFeature.feature_locator.create_search_box(lat_dimensions, lon_dimensions)
-        brightest_pixel_coordinates = CloudFeature.feature_locator.coordinates_of_brightest_pixel(search_box)
+    def get_brightest_pixel_value(self, coordgrid, projection, lat_dimensions, lon_dimensions):
+        search_box = coordgrid.feature_locator.create_search_box(projection, lat_dimensions, lon_dimensions)
+        brightest_pixel_coordinates = coordgrid.feature_locator.coordinates_of_brightest_pixel(search_box)
         lat_pixel, lon_pixel = brightest_pixel_coordinates[0], brightest_pixel_coordinates[1]
-        brightest_pixel_value = coordgrid.projected[lat_pixel, lon_pixel]
+        brightest_pixel_value = projection[int(lat_pixel)][int(lon_pixel)]
         return brightest_pixel_value
 
     def calculate_H_K_fraction(self):
         ''' This function will draw a box of specified longitudinal and latitudinal dimensions on the
         projected image and calculate the H/K fraction of each pixel within this box'''
         print('Time to calculate our H/K fraction. Please specify the dimensions of your box: ')
-        CloudFeature.feature_locator.user_draws_a_box()
-        self.lat_dimensions = CloudFeature.feature_locator.lat_dimensions
-        self.lon_dimensions = CloudFeature.feature_locator.lon_dimensions
-        H_value = self.get_brightest_pixel_value(self.H_coordgrid, self.lat_dimensions, self.lon_dimensions)
-        K_value = self.get_brightest_pixel_value(self.K_coordgrid, self.lat_dimensions, self.lon_dimensions)
-        H_K_fraction = H_value / K_value
+        lat_dimensions, lon_dimensions = self.H_coordgrid.feature_locator.user_draws_a_box()
+        H_value = self.get_brightest_pixel_value(self.H_coordgrid, self.H_projection, lat_dimensions, lon_dimensions)
+        K_value = self.get_brightest_pixel_value(self.K_coordgrid, self.K_projection, lat_dimensions, lon_dimensions)
+        print(str(H_value), str(K_value))
+        H_K_fraction = K_value / H_value
         return H_K_fraction
 
 
