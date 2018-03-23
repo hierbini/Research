@@ -22,7 +22,7 @@ class CloudFeature:
         '''Adds to HDUlist of original image?'''
         hdulist_data = pyfits.PrimaryHDU(self.coordgrid.data, header = self.header)
 
-class HKFraction(CloudFeature):
+class KHFraction(CloudFeature):
 
     def __init__(self, H_coordgrid, K_coordgrid, H_projection, K_projection):
         self.H_projection = H_projection
@@ -37,16 +37,14 @@ class HKFraction(CloudFeature):
         brightest_pixel_value = projection[int(lat_pixel)][int(lon_pixel)]
         return brightest_pixel_value
 
-    def calculate_H_K_fraction(self):
-        ''' This function will draw a box of specified longitudinal and latitudinal dimensions on the
-        projected image and calculate the H/K fraction of each pixel within this box'''
-        print('Time to calculate our H/K fraction. Please specify the dimensions of your box: ')
+    def calculate_K_H_fraction(self):
         lat_dimensions, lon_dimensions = self.H_coordgrid.feature_locator.user_draws_a_box()
         H_value = self.get_brightest_pixel_value(self.H_coordgrid, self.H_projection, lat_dimensions, lon_dimensions)
         K_value = self.get_brightest_pixel_value(self.K_coordgrid, self.K_projection, lat_dimensions, lon_dimensions)
         print(str(H_value), str(K_value))
-        H_K_fraction = K_value / H_value
-        return H_K_fraction
+        self.H_coordgrid.plot_projected(self.H_projection)
+        K_H_Fraction = K_value / H_value
+        return K_H_Fraction
 
 
 

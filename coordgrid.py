@@ -326,10 +326,7 @@ class CoordGrid:
         self.projected = datsort
         self.projected_mu = musort
 
-        projection_data = Optimizer(self.infile_path)
-        projection_data.save_local_file(self.projected)
-
-        #write data to fits file   
+        #write data to fits file
         if writefile: 
             hdulist_out = self.im.hdulist
             hdulist_out[0].header['OBJECT'] = self.target+'_projected'
@@ -337,21 +334,28 @@ class CoordGrid:
             hdulist_out[0].writeto(outstem + '_proj.fits', overwrite=True)
             print('Writing file %s'%outstem + '_proj.fits')
         
-    def plot_projected(self, ctrlon = 180, lat_limits = [-90, 90], lon_limits = [0, 360], cbarlabel = 'Count', vmin = 0, vmax = 800):
+    def plot_projected(self, projection, ctrlon = 180, lat_limits = [-90, 90], lon_limits = [0, 360], cbarlabel = 'Count', vmin = 0, vmax = 800):
         '''Once projection has been run, plot it using this function'''  
         ### remember to add back outfname, after ctr
         
         #apply center longitude to everything
-        npix, npix_per_degree = self.projected.shape[1], 1.0 / self.deg_per_px
-        print(npix_per_degree)
-        offset = (ctrlon + 180)%360
-        offsetpix = int(np.round(offset*npix_per_degree))
-        uoffsetpix = npix - offsetpix
-        newim = np.copy(self.projected)
-        lefthalf = self.projected[:,:offsetpix]
-        righthalf = self.projected[:,offsetpix:]
-        newim[:,uoffsetpix:] = lefthalf #switch left and right halves
-        newim[:,:uoffsetpix] = righthalf
+        newim = projection
+
+        """
+            npix, npix_per_degree = self.projected.shape[1], 1.0 / self.deg_per_px
+            print(npix_per_degree)
+            offset = (ctrlon + 180)%360
+            offsetpix = int(np.round(offset*npix_per_degree))
+            uoffsetpix = npix - offsetpix
+            newim = np.copy(self.projected)
+            lefthalf = self.projected[:,:offsetpix]
+            righthalf = self.projected[:,offsetpix:]
+            newim[:,uoffsetpix:] = lefthalf #switch left and right halves
+            newim[:,:uoffsetpix] = righthalf
+
+            projection_data = Optimizer(self.infile_path)
+            projection_data.save_local_file(newim)
+        """
 
         first = True
         keep_going = 'y'
@@ -381,7 +385,7 @@ class CoordGrid:
             ax0.tick_params(which = 'both', labelsize = fs - 2)
 
             #Plot cloud center
-            self.cloud_locator.plot_cloud_center(self.projected)
+            self.cloud_locator.plot_cloud_center(projection)
             
             #plot the colorbar
             divider = make_axes_locatable(ax0)

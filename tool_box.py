@@ -48,6 +48,7 @@ class Optimizer:
         coords = coordgrid.CoordGrid(path)
         coords.edge_detect()
         coords.project()
+        coords.plot_projected()
 
     def load_pickled_data_from_file(self):
         try:
