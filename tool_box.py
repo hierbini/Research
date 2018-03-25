@@ -37,28 +37,28 @@ class Path:
     def path_to_infile(self):
         return self.infile_directory
 
-class Optimizer:
+class Projection:
 
     def __init__(self, filepath):
         self.filepath = filepath
         self.filename = "projection_" + filepath[-14:]
         self.save_folder = 'C:/Users/nguye/ResearchLab/Code/Nav/SavedProjections/'
 
-    def get_projection(self, path):
+    def create_projection(self, path):
         coords = coordgrid.CoordGrid(path)
         coords.edge_detect()
         coords.project()
         coords.plot_projected()
 
-    def load_pickled_data_from_file(self):
+    def load_projection_from_file(self):
         try:
             with open(self.save_folder + self.filename, "rb") as file:
                 print("Read data from file.")
                 return pickle.load(file)
         except FileNotFoundError:
-            self.get_projection(self.filepath)
+            self.create_projection(self.filepath)
 
-    def save_local_file(self, out):
+    def save_projection(self, out):
         output = pickle.dumps(out, protocol=0)
         with open(self.save_folder + self.filename, "wb") as file:
             file.write(output)

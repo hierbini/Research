@@ -47,8 +47,9 @@ class FeatureLocator:
         max_lon = int(input('Input highest longitude: '))
         self.lat_dimensions = [min_lat, max_lat]
         self.lon_dimensions = [min_lon, max_lon]
-
         return self.lat_dimensions, self.lon_dimensions
+
+
 
 class CloudLocator(FeatureLocator):
 

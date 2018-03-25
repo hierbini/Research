@@ -16,7 +16,7 @@ from image_registration.fft_tools.shift import shift2d
 from scipy.interpolate import griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from feature_locator import FeatureLocator, CloudLocator
-from tool_box import Optimizer
+from tool_box import Projection
 
 def lat_lon(x, y, ob_lon, ob_lat, pixscale_km, np_ang, req, rpol):
     '''Find latitude and longitude on planet given x,y pixel locations and
@@ -339,9 +339,9 @@ class CoordGrid:
         ### remember to add back outfname, after ctr
         
         #apply center longitude to everything
-        newim = projection
 
-        """
+        newim = projection
+        if newim == []:
             npix, npix_per_degree = self.projected.shape[1], 1.0 / self.deg_per_px
             print(npix_per_degree)
             offset = (ctrlon + 180)%360
@@ -352,10 +352,9 @@ class CoordGrid:
             righthalf = self.projected[:,offsetpix:]
             newim[:,uoffsetpix:] = lefthalf #switch left and right halves
             newim[:,:uoffsetpix] = righthalf
-
-            projection_data = Optimizer(self.infile_path)
-            projection_data.save_local_file(newim)
-        """
+    
+            projection_data = Projection(self.infile_path)
+            projection_data.save_projection(newim)
 
         first = True
         keep_going = 'y'
@@ -385,7 +384,7 @@ class CoordGrid:
             ax0.tick_params(which = 'both', labelsize = fs - 2)
 
             #Plot cloud center
-            self.cloud_locator.plot_cloud_center(projection)
+            self.cloud_locator.plot_cloud_center(newim)
             
             #plot the colorbar
             divider = make_axes_locatable(ax0)
@@ -426,38 +425,3 @@ class CoordGrid:
             frame_sum = frame_sum + frame
 
         return frame_sum
-        
-        
-        
-        ''' 
-
-    def change_projection(self):
-        not written yet but would use basemap to reproject arbitrarily
-        
-         
-        fs = 14 #fontsize for plots
-        fig = plt.figure(figsize = (10,10))
-        ax0 = plt.subplot2grid((5,5),(0,0), colspan = 5, rowspan = 3)
-        ax1 = plt.subplot2grid((5,5), (3,0), colspan = 2, rowspan = 2)
-        ax2 = plt.subplot2grid((5,5), (3, 3), colspan = 2, rowspan = 2)      
-        m0 = basemap.Basemap(rsphere = (self.req, self.rpol), projection='cyl', ax = ax0, lon_0 = 180) #do not, under any circumstances, change lon_0 from 0 or let plotted longitudes outside -180, 180
-        m0.pcolormesh(gridlon, gridlat, datsort, cmap = 'gray')
-        
-        m0.drawparallels(np.arange(-90.,99.,30.), labels=[1,0,0,0], fontsize=fs, color = 'cyan')
-        m0.drawmeridians(np.arange(-180.,180.,60.), labels=[0,0,0,1], fontsize=fs, color = 'cyan')
-
-        m1 = basemap.Basemap(rsphere = (self.req, self.rpol), projection='npstere', boundinglat=30, lon_0=180, ax = ax1)
-        m1.drawparallels(np.arange(-90.,99.,30.), labels=[1,1,1,1], fontsize=fs, color = 'cyan')
-        m1.drawmeridians(np.arange(-180.,180.,60.), labels=[1,1,1,1], fontsize=fs, color = 'cyan') 
-        m1.pcolor(gridlon, gridlat, datsort, latlon = True, cmap = 'gray')       
-        
-        m2 = basemap.Basemap(rsphere = (self.req, self.rpol), projection='spstere', boundinglat=-30, lon_0=180, ax = ax2)
-        m2.drawparallels(np.arange(-90.,99.,30.), labels=[1,1,1,1], fontsize=fs, color = 'cyan')
-        m2.drawmeridians(np.arange(-180.,180.,60.), labels=[1,1,1,1], fontsize=fs, color = 'cyan')
-        m2.pcolor(gridlon, gridlat, datsort, latlon = True, cmap = 'gray')
-        
-        ax0.set_title(self.date_time, fontsize = fs + 2)
-        plt.subplots_adjust(hspace = 1.0, wspace = -0.4)
-        plt.savefig(outstem+'_proj.png', bbox = None)
-        plt.show()
-        '''

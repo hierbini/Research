@@ -1,14 +1,11 @@
 import matplotlib.pyplot as plt
 import coordgrid
-from tool_box import Path, Optimizer
+from tool_box import Path, Projection
 
-path = Path('2017-08-31', 'Neptune_H')
-infile_path = path.path_to_infile()
-
-coords = coordgrid.CoordGrid(infile_path+'s0124_red.fits')
-coords.edge_detect()
-coords.project()
-coords.plot_projected()
+H_path = Path('2017-08-31', 'Neptune_H').all_files_in_folder[0]
+H_projection = Projection(H_path).load_projection_from_file()
+coords = coordgrid.CoordGrid(H_path)
+coords.plot_projected(H_projection)
 
 # to manipulate latitudes and longitudes, use coords.lat_g, coords.lon_e
 #plt.imshow(coords.lat_g, origin = 'lower left')
