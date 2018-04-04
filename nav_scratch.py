@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import coordgrid
 from tool_box import Path, Projection
 
-H_path = Path('2017-08-31', 'Neptune_H').all_files_in_folder[0]
+H_path = Path('2017-07-08', 'Neptune_H').all_files_in_folder[2]
 H_projection = Projection(H_path).load_projection_from_file()
 coords = coordgrid.CoordGrid(H_path)
 coords.plot_projected(H_projection)

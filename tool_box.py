@@ -48,7 +48,7 @@ class Projection:
         coords = coordgrid.CoordGrid(path)
         coords.edge_detect()
         coords.project()
-        coords.plot_projected()
+        coords.plot_projected([])
 
     def load_projection_from_file(self):
         try:
