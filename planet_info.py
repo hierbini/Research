@@ -2,6 +2,7 @@
 class Neptune:
 
     name = 'Neptune'
+    time_of_one_rotation = 16.11 #hours
     rotational_velocity = 2.86
     polar_radius = 24341
     equatorial_radius = 24764
