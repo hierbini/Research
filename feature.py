@@ -13,14 +13,10 @@ class CloudFeature:
         self.coordgrid = coordgrid
         self.feature_locator = feature_locator
 
-    def correct_planets_rotation(self, planet):
-        ''' In the case that we need to compare two images, the images should be aligned. However, 
-        due to time in between observations, one image may be shifted because of planetary rotation.
-        This function returns something that corrects this rotation.'''
-
     def write_file(self, outfile):
         '''Adds to HDUlist of original image?'''
         hdulist_data = pyfits.PrimaryHDU(self.coordgrid.data, header = self.header)
+        
 
 class KHFraction(CloudFeature):
 

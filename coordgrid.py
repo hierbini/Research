@@ -17,6 +17,7 @@ from scipy.interpolate import griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from feature_locator import FeatureLocator, CloudLocator
 from tool_box import Projection
+import planet_info
 
 def lat_lon(x, y, ob_lon, ob_lat, pixscale_km, np_ang, req, rpol):
     '''Find latitude and longitude on planet given x,y pixel locations and
@@ -85,17 +86,17 @@ def emission_angle(ob_lat, surf_n):
 
 class CoordGrid:
     
-    def __init__(self, infile, pixscale = 0.033, req = 24764, rpol = 24341, centered = False):
+    def __init__(self, infile, planet_band, centered = False):
         '''Pull ephemeris data, calculate lat and lon'''
         self.infile_path = infile
         self.im = Image(infile)
         self.hdulist = self.im.hdulist
         self.header = pyfits.getheader(infile)
-        self.req = req
-        self.rpol = rpol
+        self.req = planet_band.equatorial_radius
+        self.rpol = planet_band.polar_radius
         self.data = self.im.data
         self.cen = centered
-        self.pixscale_arcsec = pixscale
+        self.pixscale_arcsec = planet_band.pixel_scale
         
         #pull and reformat header info
         targ = self.im.header['OBJECT'].split('_')[0]
@@ -110,7 +111,7 @@ class CoordGrid:
 
         imsize_x = self.data.shape[0]
         imsize_y = self.data.shape[1]
-        tstart = datetime.strptime(date+' '+expstart[:5],'%Y-%m-%d %H:%M')
+        tstart = datetime.strptime(date +' '+expstart[:5],'%Y-%m-%d %H:%M')
         tend = tstart + timedelta(minutes=1)
         tstart = datetime.strftime(tstart, '%Y-%m-%d %H:%M')
         tend = datetime.strftime(tend, '%Y-%m-%d %H:%M')
@@ -144,8 +145,8 @@ class CoordGrid:
 
         xx = np.arange(imsize_x) - xcen
         yy = np.arange(imsize_y) - ycen
-        x,y = np.meshgrid(xx,yy)
-        self.lat_g, self.lat_c, self.lon_e = lat_lon(x,y,self.ob_lon,self.ob_lat,self.pixscale_km,self.np_ang,req,rpol)
+        x, y = np.meshgrid(xx, yy)
+        self.lat_g, self.lat_c, self.lon_e = lat_lon(x, y, self.ob_lon, self.ob_lat, self.pixscale_km, self.np_ang, req,rpol)
 
         self.surf_n = surface_normal(self.lat_g, self.lon_e, self.ob_lon)
         self.mu = emission_angle(self.ob_lat, self.surf_n)
@@ -158,10 +159,6 @@ class CoordGrid:
         that with edges of model, '''
         self.model_planet = np.nan_to_num(self.lat_g * 0.0 + 1.0)
 
-
-        dataz = self.data[xs:xs+s, ys:ys+s]
-        model_planetz = self.model_planet[xs:xs+s, ys:ys+s]
-
         imdata = np.zeros((2048, 2048))
         imdata[xs:xs+s, ys:ys+s] = self.data[xs:xs+s, ys:ys+s]
         
@@ -169,35 +166,22 @@ class CoordGrid:
         edges = feature.canny(imdata/np.max(imdata), sigma=sigma, low_threshold = low_thresh, high_threshold = high_thresh)
 
     
-        [dx,dy,dxerr,dyerr] = chi2_shift(model_edges, edges)
+        [dx, dy, dxerr, dyerr] = chi2_shift(model_edges, edges)
         self.dx = dx #need these if we want to shift another filter the same amount
         self.dy = dy
 
         self.centered = shift2d(self.data,-1*dx,-1*dy)
         self.edges = shift2d(edges,-1*dx,-1*dy)
         self.data_shifted = shift2d(imdata, -1*dx, -1*dy)
+
         if plot:
             fig, (ax0, ax1, ax2) = plt.subplots(1, 3, figsize=(10, 5))
-
             ax0.imshow(imdata, origin = 'lower left', vmin = 0, vmax = 1000)
             ax0.set_title('Imdata')
-
             ax1.imshow(self.model_planet, origin = 'lower left')
             ax1.set_title('Model Planet')
-
             ax2.imshow(self.data_shifted, origin = 'lower left', vmin=0, vmax=1000)
             ax2.set_title('Image')
-            
-            
-            #ax0.imshow(self.data_shifted[1024-150:1024+150, 1024-150:1024+150], origin = 'lower left', vmin=1, vmax=1000)
-            #ax0.set_title('Image')
-            
-            #ax1.imshow(edges, origin = 'lower left')
-            #ax1.set_title('Canny filter, $\sigma=$%d'%sigma)
-            
-            #ax2.imshow(self.edges, origin = 'lower left', alpha = 1.0)
-            #ax2.imshow(self.centered, origin = 'lower left', alpha = 0.5, vmin=0,vmax=1000)
-            #ax2.set_title('Overlay model and data')
             plt.show()
         
     def plot_latlon(self):
