@@ -30,31 +30,51 @@ class DerotatePlanet:
     def get_time(headerdate):
         return headerdate[11:16]
 
-    def get_month_day_hour_minute(date, time):
-        month = int(date[5:7])
+    def get_day_hour_minute(date, time):
         day = int(date[8:10])
         hour = int(time[0:2])
         minute = int(time[3:5])
-        return month, day, hour, minute
+        return day, hour, minute
 
-    def find_time_between_images(H_date, H_time, K_date, K_time):
-        H_month, H_day, H_hour, H_minute = DerotatePlanet.get_month_day_hour_minute(H_date, H_time)
-        K_month, K_day, K_hour, K_minute = DerotatePlanet.get_month_day_hour_minute(K_date, K_time)
-        max_hour, min_hour = max(K_hour, H_hour), min(K_hour, H_hour)
-        minute_difference = 0
+    def get_time_in_order(H_date, H_time, K_date, K_time):
+        H_day, H_hour, H_minute = DerotatePlanet.get_day_hour_minute(H_date, H_time)
+        K_day, K_hour, K_minute = DerotatePlanet.get_day_hour_minute(K_date, K_time)
 
         if H_day == K_day:
+            if K_hour == H_hour:
+                if K_minute > H_minute:
+                    return H_date, H_time, K_date, K_time
+                else:
+                    return K_date, K_time, H_date, H_time
             if H_hour > K_hour:
-                minute_difference = K_minute - H_minute
+                return K_date, K_time, H_date, H_time
             else:
-                minute_difference = H_minute - K_minute
-            return abs(60 * (max_hour - min_hour) - minute_difference)
-        elif H_day > K_day:
-             minute_difference = K_minute - H_minute
-        elif K_day > H_day:
-             minute_difference = H_minute - K_minute
-        max_hour, min_hour = min_hour + 12, max_hour
-        return abs(60 * (max_hour - min_hour) - minute_difference)
+                return H_date, H_time, K_date, K_time
+        if H_day > K_day:
+            return K_date, K_time, H_date, H_time
+        else:
+            return H_date, H_time, K_date, K_time
+
+    def find_time_between_images(begin_date, begin_time, end_date, end_time):
+        begin_day, begin_hour, begin_minute = DerotatePlanet.get_day_hour_minute(begin_date, begin_time)
+        end_day, end_hour, end_minute = DerotatePlanet.get_day_hour_minute(end_date, end_time)
+        minute_difference = 0
+
+        if begin_day == 1 and end_day == 31:
+            begin_day = 31
+            end_day = 30
+        elif end_day == 1 and begin_day == 31:
+            end_day = 31
+            begin_day = 30
+        if begin_hour == 12:
+            begin_day -= 1
+        if end_hour == 12:
+            end_day -= 1
+
+        if end_hour < begin_hour:
+            end_hour = end_hour + 12
+        minute_difference = end_minute - begin_minute
+        return 60 * abs(end_hour - begin_hour) + minute_difference
 
     def get_correction_time(self):
         H_date, H_time = DerotatePlanet.get_date_and_time(self.H_path)
