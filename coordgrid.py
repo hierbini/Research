@@ -16,7 +16,8 @@ from image_registration.fft_tools.shift import shift2d
 from scipy.interpolate import griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from feature_locator import FeatureLocator, CloudLocator
-from tool_box import Projection
+from tool_box import *
+from save_paths import *
 from planet_info import *
 
 def lat_lon(x, y, ob_lon, ob_lat, pixscale_km, np_ang, req, rpol):
@@ -329,7 +330,7 @@ class CoordGrid:
             righthalf = self.projected[:,offsetpix:]
             newim[:,uoffsetpix:] = lefthalf #switch left and right halves
             newim[:,:uoffsetpix] = righthalf
-            projection_data = Projection(self.infile_path)
+            projection_data = SaveProjection(self.infile_path)
             projection_data.save_projection(newim)
 
         first = True

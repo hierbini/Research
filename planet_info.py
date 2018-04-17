@@ -18,24 +18,28 @@ class Uranus:
 class NeptuneH(Neptune):
 
     def __init__(self):
+        self.band = 'Neptune_H'
         self.vmin = 0
-        self.vmax = 1000
+        self.vmax = 800
 
 class NeptuneKs(Neptune):
 
     def __init__(self):
+        self.band = 'Neptune_Ks'
         self.vmin = 0
         self.vmax = 1000
 
 class UranusH(Uranus):
 
     def __init__(self):
+        self.band = 'Uranus_H'
         self.vmin = 0
         self.vmax = 1900
 
 class UranusKs(Uranus):
 
     def __init__(self):
+        self.band = 'Uranus_Ks'
         self.vmin = 0
         self.vmax = 300
 

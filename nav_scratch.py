@@ -1,10 +1,11 @@
-import coordgrid
-from tool_box import Path, Projection
+from coordgrid import *
+from save_paths import *
 from planet_info import *
 
 planet = NeptuneH()
-H_path = Path('2017-08-31', planet.name + '_H').all_files_in_folder[4]
-H_projection = Projection(H_path).load_projection_from_file(planet)
+H_path = InfilePath('2017-08-07', planet).all_files_in_folder[3]
+H_projection = SaveProjection(H_path).load_projection_from_file(planet)
+print(H_projection)
 coords = coordgrid.CoordGrid(H_path, planet)
 coords.plot_projected(H_projection)
 
