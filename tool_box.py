@@ -37,6 +37,32 @@ class Path:
     def path_to_infile(self):
         return self.infile_directory
 
+class CoordGridVariables:
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.filename = "coordgrid_" + filepath[-14:]
+        self.save_folder = 'C:/Users/nguye/ResearchLab/Code/Nav/CoordGridVariables/'
+
+    def create_coordgridvariables(self, path, planet):
+        coords = coordgrid.CoordGrid(path, planet)
+        coords.edge_detect()
+        coords.project()
+        coordgrid_variables = vars(coords)
+        self.save_coordgrid_variables_dictionary(coordgrid_variables)
+
+    def load_coordgrid_variables_from_file(self, planet):
+        try:
+            with open(self.save_folder + self.filename, "rb") as file:
+                print("Read CoordGrid variables from file.")
+                return pickle.load(file)
+        except FileNotFoundError:
+            self.create_coordgridvariables(self.filepath, planet)
+
+    def save_coordgrid_variables_dictionary(self, out):
+        output = pickle.dumps(out, protocol=0)
+        with open(self.save_folder + self.filename, "wb") as file:
+            file.write(output)
+
 class Projection:
 
     def __init__(self, filepath):
@@ -44,19 +70,19 @@ class Projection:
         self.filename = "projection_" + filepath[-14:]
         self.save_folder = 'C:/Users/nguye/ResearchLab/Code/Nav/SavedProjections/'
 
-    def create_projection(self, path):
-        coords = coordgrid.CoordGrid(path)
+    def create_projection(self, path, planet):
+        coords = coordgrid.CoordGrid(path, planet)
         coords.edge_detect()
         coords.project()
         coords.plot_projected([])
 
-    def load_projection_from_file(self):
+    def load_projection_from_file(self, planet):
         try:
             with open(self.save_folder + self.filename, "rb") as file:
                 print("Read data from file.")
                 return pickle.load(file)
         except FileNotFoundError:
-            self.create_projection(self.filepath)
+            self.create_projection(self.filepath, planet)
 
     def save_projection(self, out):
         output = pickle.dumps(out, protocol=0)

@@ -17,7 +17,7 @@ from scipy.interpolate import griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from feature_locator import FeatureLocator, CloudLocator
 from tool_box import Projection
-import planet_info
+from planet_info import *
 
 def lat_lon(x, y, ob_lon, ob_lat, pixscale_km, np_ang, req, rpol):
     '''Find latitude and longitude on planet given x,y pixel locations and
@@ -137,16 +137,16 @@ class CoordGrid:
         self.dist = float(ephem[22])*1.496e8 #from AU to km        
         self.date_time = tstart
 
-        self.pixscale_km = self.dist*np.radians(pixscale/3600)
-        avg_circumference = 2*np.pi*((req + rpol)/2.0)
+        self.pixscale_km = self.dist*np.radians(self.pixscale_arcsec/3600)
+        avg_circumference = 2*np.pi*((self.req + self.rpol)/2.0)
         self.deg_per_px = self.pixscale_km * (1/avg_circumference) * 360 #approximate conversion between degrees and pixels at sub-observer point
-
+        print(self.deg_per_px)
         xcen, ycen = int(imsize_x/2), int(imsize_y/2) #pixels at center of planet
 
         xx = np.arange(imsize_x) - xcen
         yy = np.arange(imsize_y) - ycen
         x, y = np.meshgrid(xx, yy)
-        self.lat_g, self.lat_c, self.lon_e = lat_lon(x, y, self.ob_lon, self.ob_lat, self.pixscale_km, self.np_ang, req,rpol)
+        self.lat_g, self.lat_c, self.lon_e = lat_lon(x, y, self.ob_lon, self.ob_lat, self.pixscale_km, self.np_ang, self.req, self.rpol)
 
         self.surf_n = surface_normal(self.lat_g, self.lon_e, self.ob_lon)
         self.mu = emission_angle(self.ob_lat, self.surf_n)
@@ -310,13 +310,6 @@ class CoordGrid:
         self.projected = datsort
         self.projected_mu = musort
 
-        #write data to fits file
-        if writefile: 
-            hdulist_out = self.im.hdulist
-            hdulist_out[0].header['OBJECT'] = self.target+'_projected'
-            hdulist_out[0].data = datsort
-            hdulist_out[0].writeto(outstem + '_proj.fits', overwrite=True)
-            print('Writing file %s'%outstem + '_proj.fits')
         
     def plot_projected(self, projection, ctrlon = 180, lat_limits = [-90, 90], lon_limits = [0, 360], cbarlabel = 'Count', vmin = 0, vmax = 800):
         '''Once projection has been run, plot it using this function'''  
@@ -336,7 +329,6 @@ class CoordGrid:
             righthalf = self.projected[:,offsetpix:]
             newim[:,uoffsetpix:] = lefthalf #switch left and right halves
             newim[:,:uoffsetpix] = righthalf
-    
             projection_data = Projection(self.infile_path)
             projection_data.save_projection(newim)
 

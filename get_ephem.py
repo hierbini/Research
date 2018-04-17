@@ -68,7 +68,7 @@ def get_ephemerides(code, obs_code, tstart, tend, stepsize) :
     tend_UT = datetime.strftime(tend_obj,"'%Y-%m-%d %H:%M'")
     combination = "_".join([str(code), str(obs_code), tstart_UT, tend_UT, stepsize]).replace(":", "")
     try:
-        with open(combination, "rb") as file:
+        with open('C:/Users/nguye/ResearchLab/Code/Nav/SavedEphemeris/' + combination, "rb") as file:
             print("Read data from file.")
             dictionary = pickle.load(file)
             return dictionary["out"], dictionary["observatory_coords"]
@@ -121,5 +121,5 @@ def get_ephemerides(code, obs_code, tstart, tend, stepsize) :
 def save_local_results(filename, out, observatory_coords):
     output_dictionary = {"out" : out, "observatory_coords" : observatory_coords}
     output = pickle.dumps(output_dictionary, protocol=0)
-    with open(filename, "wb") as file:
+    with open('C:/Users/nguye/ResearchLab/Code/Nav/SavedEphemeris/' + filename, "wb") as file:
         file.write(output)
