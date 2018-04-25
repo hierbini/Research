@@ -71,26 +71,26 @@ class SaveStackedProjection:
         self.date = date
         self.planet = planet
         self.band = planet.band
-        save_folder = 'C:/Users/nguye/ResearchLab/Code/Nav/SavedStackedProjections/'
-        self.save_address = save_folder + date + '/' + planet.band
+        save_folder = 'C:/Users/nguye/ResearchLab/Code/Nav/SavedStackedProjections/' + date + '/'
+        self.save_address = ensure_directory_exists(save_folder) + self.band
 
     def create_stacked_projection(self, planet):
-        paths = tb.get_all_paths(planet, self.date)
-        degree_per_pixels = tb.get_degree_per_pixels(planet, paths)
+        paths = tb.get_all_paths(self.date, planet)
+        degree_per_pixels = tb.get_degrees_per_pixels(planet, paths)
         projections = tb.get_all_projections(paths, planet)
         shift_dictionary = ShiftTime(paths).shift_dictionary()
-        shift_instances = get_all_shift_instances(shift_dictionary, degree_per_pixels, projections)
-
+        shift_instances = get_all_shift_instances(paths, planet, shift_dictionary, degree_per_pixels, projections)
         integration_times = get_all_integration_times(paths)
         shifted_projections = get_all_shifted_projections(integration_times, shift_instances)
-
         stacked_projection = stack_projections(shifted_projections)
         image_name = 'Stacked Projection for ' + self.date
-        plot_projection(image_name, self.planet, stacked_projection / 5)
+        tb.plot_projection(image_name, 0, 20, stacked_projection)
 
         answer = input("Do you want to save this stacked projection? (y/n): ")
         if answer == 'y':
             self.save_stacked_projection(stacked_projection)
+
+        return stacked_projection
 
     def load_stacked_projection_from_file(self, planet):
         return load_info_from_file(planet, self.save_address, self.create_stacked_projection)
@@ -105,12 +105,16 @@ class SaveCoordGrid:
         self.filepath = filepath
         filedate = tb.get_file_date(filepath) + '/'
         filename = 'coordgrid_' + tb.get_filename(filepath)
-        save_folder = 'C:/Users/nguye/ResearchLab/Code/Nav/SavedCoordgrids/' + filedate
+        planet_band = tb.get_file_planet_band(filepath) + '/'
+        save_folder = 'C:/Users/nguye/ResearchLab/Code/Nav/SavedCoordgrids/' + filedate + planet_band
         self.save_address = ensure_directory_exists(save_folder) + filename
 
     def create_coordgrid(self, planet):
         coords = coordgrid.CoordGrid(self.filepath, planet)
-        coords_variables = {"degrees_per_pixel": coords.deg_per_px}
+        coords.edge_detect()
+        coords.project()
+        coords_variables = {"degrees_per_pixel": coords.deg_per_px, "projected_emission_angle": coords.projected_mu,
+                            "emission_angle": coords.mu, "latitude": coords.lat_g, "longitude": coords.lon_e}
         self.save_coordgrid(coords_variables)
         return coords_variables
 

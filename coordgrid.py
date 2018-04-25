@@ -333,47 +333,37 @@ class CoordGrid:
 
         self.projected = newim
 
-        first = True
-        keep_going = 'y'
+        fs = 14 #fontsize for plots
+        fig, ax0 = plt.subplots(1,1, figsize = (10,7))
+        extent = [ctrlon - 180, ctrlon + 180, -90, 90]
+        cim = ax0.imshow(newim, extent = extent, origin = 'lower left', cmap = 'gray', vmin = vmin, vmax = vmax)
+        parallels = np.arange(lat_limits[0],lat_limits[1] + 30, 30.)
+        meridians = np.arange(lon_limits[0],lon_limits[1] + 60, 60.)
+        for loc in parallels:
+            ax0.axhline(loc, color = 'cyan', linestyle = ':')
+        for loc in meridians:
+            ax0.axvline(loc, color = 'cyan', linestyle = ':')
 
-        while keep_going == 'y':
-            if first:
-                print('Hello, this is where you define the dimensions of your box!')
-                first = False
-            #plot it
-            fs = 14 #fontsize for plots
-            fig, ax0 = plt.subplots(1,1, figsize = (10,7))
-            extent = [ctrlon - 180, ctrlon + 180, -90, 90]
-            cim = ax0.imshow(newim, extent = extent, origin = 'lower left', cmap = 'gray', vmin = vmin, vmax = vmax)
-            parallels = np.arange(lat_limits[0],lat_limits[1] + 30, 30.)
-            meridians = np.arange(lon_limits[0],lon_limits[1] + 60, 60.)
-            for loc in parallels:
-                ax0.axhline(loc, color = 'cyan', linestyle = ':')
-            for loc in meridians:
-                ax0.axvline(loc, color = 'cyan', linestyle = ':')
-            
-            #plot lines intersecting
-            ax0.set_xlabel('Longitude', fontsize = fs)
-            ax0.set_ylabel('Latitude', fontsize = fs)
-            ax0.set_ylim(lat_limits)
-            ax0.set_xlim(lon_limits)
-            ax0.set_title(self.date_time, fontsize = fs + 2)
-            ax0.tick_params(which = 'both', labelsize = fs - 2)
+        #Plot cloud center
+        #self.cloud_locator.plot_cloud_center(newim)
 
-            #Plot cloud center
-            self.cloud_locator.plot_cloud_center(newim)
-            
-            #plot the colorbar
-            divider = make_axes_locatable(ax0)
-            cax = divider.append_axes('right', size='5%', pad=0.05)
-            cbar = fig.colorbar(cim, cax = cax, orientation = 'vertical')
-            cbar.set_label(cbarlabel, fontsize = fs)
-            cax.tick_params(which = 'both', labelsize = fs - 2)
-            
-            #plt.savefig(outfname, bbox = None)
-            plt.show()
-            keep_going = input('Do you want to find a different coordinate? (y/n): ')
-            print('------------------------------------------------------')
+        #plot lines intersecting
+        ax0.set_xlabel('Longitude', fontsize = fs)
+        ax0.set_ylabel('Latitude', fontsize = fs)
+        ax0.set_ylim(lat_limits)
+        ax0.set_xlim(lon_limits)
+        ax0.set_title(self.date_time, fontsize = fs + 2)
+        ax0.tick_params(which = 'both', labelsize = fs - 2)
+
+        #plot the colorbar
+        divider = make_axes_locatable(ax0)
+        cax = divider.append_axes('right', size='5%', pad=0.05)
+        cbar = fig.colorbar(cim, cax = cax, orientation = 'vertical')
+        cbar.set_label(cbarlabel, fontsize = fs)
+        cax.tick_params(which = 'both', labelsize = fs - 2)
+
+        #plt.savefig(outfname, bbox = None)
+        plt.show()
 
     def write_latlon_projec(self, outfile):
         lat = self.lat_g

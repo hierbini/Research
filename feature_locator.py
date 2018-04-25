@@ -36,7 +36,7 @@ class FeatureLocator:
     def find_latlon_of_feature(self, projection):
         search_box = self.create_search_box(projection, self.lat_dimensions, self.lon_dimensions)
         found_coordinates = self.coordinates_of_brightest_pixel(search_box)
-        longitude, latitude = tb.convert_lonlat_pixels_to_degrees(found_coordinates, self.pixels_per_degree)
+        latitude, longitude = tb.convert_latlon_pixels_to_degrees(found_coordinates, self.pixels_per_degree)
         return latitude, longitude
 
     def user_draws_a_box(self):

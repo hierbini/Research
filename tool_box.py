@@ -1,11 +1,13 @@
-
-import os
+from planet_info import *
+import save_paths as sp
+from glob import glob
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import sys
 sys.path.append("C:\\Python36\\lib")
 sys.path.append("C:\\Python36\\lib\\site-packages")
-import save_paths as sp
-from glob import glob
-from planet_info import *
+
 
 """ CONVERSION FUNCTIONS """
 
@@ -24,12 +26,13 @@ def convert_dimensions_to_pixels(lat_dimensions, lon_dimensions, pixels_per_degr
     return lat_dimensions, lon_dimensions
 
 
-def convert_lonlat_pixels_to_degrees(indices, pixels_per_degree):
-    lattitude = (indices[0] / pixels_per_degree) - 90
+def convert_latlon_pixels_to_degrees(indices, pixels_per_degree):
+    latitude = (indices[0] / pixels_per_degree) - 90
     longitude = indices[1] / pixels_per_degree
-    return longitude, lattitude
+    return latitude, longitude
 
 """ PATH FUNCTIONS """
+
 
 def choose_date():
     available_dates = glob('C:/Users/nguye/ResearchLab/Data/Lick/Data_Again/Reduced/*')
@@ -69,6 +72,7 @@ def choose_folder():
     elif planet_band == 'Uranus_Ks':
         return UranusKs(), date
 
+
 def get_filename(path):
     return path[-14:]
 
@@ -85,14 +89,14 @@ def get_file_planet_band(path):
             return planet_band
 
 
-def get_all_paths(planet, date):
+def get_all_paths(date, planet):
     return sp.InfilePath(date, planet).all_files_in_folder
 
 
 """ GENERIC FUNCTIONS FOR SCRIPTS THAT USE MULTIPLE IMAGES """
 
 
-def get_degree_per_pixels(planet, paths):
+def get_degrees_per_pixels(planet, paths):
     degrees_per_pixels = []
     for path in paths:
         coordgrid = sp.SaveCoordGrid(path).load_coordgrid(planet)
@@ -102,3 +106,47 @@ def get_degree_per_pixels(planet, paths):
 
 def get_all_projections(paths, planet):
     return [sp.SaveProjection(path).load_projection_from_file(planet) for path in paths]
+
+""" GENERIC PROJECTION FUNCTIONS """
+
+def get_pixel_value(pixel_coordinates, projection):
+    lat_pixel, lon_pixel = pixel_coordinates[0], pixel_coordinates[1]
+    brightest_pixel_value = projection[int(lat_pixel)][int(lon_pixel)]
+    return brightest_pixel_value
+
+def get_line(central_coords):
+    """ Returns list of coordinates ten pixels to the left and to the right of coordinates"""
+    lat = central_coords[0]
+    lon = central_coords[1]
+    left_of_line = [(lat, lon - x) for x in range(10)]
+    right_of_line = [(lat, lon + x) for x in range(10)]
+    return left_of_line + [central_coords] + right_of_line
+
+def plot_projection(image_name, vmin, vmax, projection, ctrlon = 180, lat_limits = (-90, 90), lon_limits = (0, 360), cbarlabel = 'Count'):
+    vmin, vmax = vmin, vmax
+    fontsize = 14
+    fig, ax0 = plt.subplots(1, 1, figsize=(10, 7))
+    extent = [ctrlon - 180, ctrlon + 180, -90, 90]
+    cim = ax0.imshow(projection, extent=extent, origin='lower left', cmap='gray', vmin=vmin, vmax=vmax)
+    parallels = np.arange(lat_limits[0], lat_limits[1] + 30, 30.)
+    meridians = np.arange(lon_limits[0], lon_limits[1] + 60, 60.)
+    for loc in parallels:
+        ax0.axhline(loc, color='cyan', linestyle=':')
+    for loc in meridians:
+        ax0.axvline(loc, color='cyan', linestyle=':')
+
+    # plot lines intersecting
+    ax0.set_xlabel('Longitude', fontsize=fontsize)
+    ax0.set_ylabel('Latitude', fontsize=fontsize)
+    ax0.set_ylim(lat_limits)
+    ax0.set_xlim(lon_limits)
+    ax0.set_title(image_name, fontsize=fontsize + 2)
+    ax0.tick_params(which='both', labelsize=fontsize - 2)
+
+    # plot the colorbar
+    divider = make_axes_locatable(ax0)
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    cbar = fig.colorbar(cim, cax=cax, orientation='vertical')
+    cbar.set_label(cbarlabel, fontsize=fontsize)
+    cax.tick_params(which='both', labelsize=fontsize - 2)
+    plt.show()

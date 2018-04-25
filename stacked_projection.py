@@ -1,19 +1,19 @@
 from shift_time import *
-from projection_functions import *
+import shift_projection as shift
 from planet_info import *
 import numpy as np
 import pyfits
 import tool_box as tb
 import save_paths as sp
 
-def get_all_shift_instances(shift_dictionary, degree_per_pixels, projections):
+def get_all_shift_instances(paths, planet, shift_dictionary, degree_per_pixels, projections):
     shiftprojections = []
     for i in range(len(paths)):
-        image_name = get_filename(paths[i])
+        image_name = tb.get_filename(paths[i])
         degrees_per_pixel = degree_per_pixels[i]
         timeshift = shift_dictionary[image_name]
         projection = projections[i]
-        shiftprojections.append(ProjectionShift(image_name, planet, degrees_per_pixel, timeshift, projection))
+        shiftprojections.append(shift.ProjectionShift(image_name, planet, degrees_per_pixel, timeshift, projection))
     return shiftprojections
 
 def get_all_integration_times(paths):
@@ -27,7 +27,8 @@ def get_all_integration_times(paths):
 def get_all_shifted_projections(integration_times, shift_instances):
     shifted_projections = []
     for i in range(len(shift_instances)):
-        shifted_projection = shift_instances[i].shift_projection()
+        int_time = integration_times[i]
+        shifted_projection = shift_instances[i].shift_projection() / int_time
         shifted_projections.append(shifted_projection)
     return shifted_projections
 
@@ -47,4 +48,7 @@ def project_all_shift_instances(shift_instances):
 if __name__ == "__main__":
     planet, date = tb.choose_folder()
     stacked_projection = sp.SaveStackedProjection(date, planet)
-    stacked_projection.load_stacked_projection_from_file(planet)
+    stacked_projection = stacked_projection.load_stacked_projection_from_file(planet)
+    if stacked_projection is not None:
+        tb.plot_projection("Stacked Projection", 0, 20, stacked_projection)
+
