@@ -3,24 +3,22 @@ import os
 import sys
 sys.path.append("C:\\Python36\\lib")
 sys.path.append("C:\\Python36\\lib\\site-packages")
-
 import numpy as np
 import matplotlib.pyplot as plt
-from tool_box import *
-from save_paths import *
+import tool_box as tb
 
 class FeatureLocator:
 
-    def __init__(self, coordgrid, lat_dimensions = [-90, 90], lon_dimensions = [0, 360]):
-        self.coords = coordgrid
+    def __init__(self, deg_per_pix, lat_dimensions = [-90, 90], lon_dimensions = [0, 360]):
+        self.degrees_per_pixel = deg_per_pix
         self.lat_dimensions = lat_dimensions
         self.lon_dimensions = lon_dimensions
-        self.pixels_per_degree = 1.0 / self.coords.deg_per_px
+        self.pixels_per_degree = 1.0 / self.degrees_per_pixel
         self.get_minimum_maximum = lambda dimensions: (int(dimensions[0]), int(dimensions[1]))
 
     def create_search_box(self, projection, lat_dimensions, lon_dimensions):
         '''Returns search box with latitude and longitude dimensions but in pixel scale. '''
-        lat_dimensions, lon_dimensions = convert_dimensions_to_pixels(lat_dimensions, lon_dimensions, self.pixels_per_degree)
+        lat_dimensions, lon_dimensions = tb.convert_dimensions_to_pixels(lat_dimensions, lon_dimensions, self.pixels_per_degree)
         min_lat, max_lat = self.get_minimum_maximum(lat_dimensions)
         min_lon, max_lon = self.get_minimum_maximum(lon_dimensions)
         search_box = projection[min_lat:max_lat, min_lon:max_lon]
@@ -29,8 +27,8 @@ class FeatureLocator:
     def coordinates_of_brightest_pixel(self, search_box):
         indices = np.nanargmax(search_box)
         unshifted_coords = np.unravel_index(indices, np.shape(search_box))
-        lat_shift = convert_lat_degree_to_pixel(self.lat_dimensions[0], self.pixels_per_degree)
-        lon_shift = convert_lon_degree_to_pixel(self.lon_dimensions[0], self.pixels_per_degree)
+        lat_shift = tb.convert_lat_degree_to_pixel(self.lat_dimensions[0], self.pixels_per_degree)
+        lon_shift = tb.convert_lon_degree_to_pixel(self.lon_dimensions[0], self.pixels_per_degree)
         coordinates = [int(unshifted_coords[0] + lat_shift), int(unshifted_coords[1] + lon_shift)]
         print('Brightest pixel coordinates are ' + str(coordinates))
         return coordinates
@@ -38,7 +36,7 @@ class FeatureLocator:
     def find_latlon_of_feature(self, projection):
         search_box = self.create_search_box(projection, self.lat_dimensions, self.lon_dimensions)
         found_coordinates = self.coordinates_of_brightest_pixel(search_box)
-        longitude, latitude = convert_lonlat_pixels_to_degrees(found_coordinates, self.pixels_per_degree)
+        longitude, latitude = tb.convert_lonlat_pixels_to_degrees(found_coordinates, self.pixels_per_degree)
         return latitude, longitude
 
     def user_draws_a_box(self):

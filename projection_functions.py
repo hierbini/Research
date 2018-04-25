@@ -1,5 +1,6 @@
 import numpy as np
-from coordgrid import *
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 class ProjectionShift:
 
@@ -52,4 +53,5 @@ def plot_projection(image_name, planet, projection, ctrlon = 180, lat_limits = (
     cbar = fig.colorbar(cim, cax=cax, orientation='vertical')
     cbar.set_label(cbarlabel, fontsize=fontsize)
     cax.tick_params(which='both', labelsize=fontsize - 2)
+    plt.show()
 

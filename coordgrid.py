@@ -15,9 +15,9 @@ from image_registration.chi2_shifts import chi2_shift
 from image_registration.fft_tools.shift import shift2d
 from scipy.interpolate import griddata
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from feature_locator import FeatureLocator, CloudLocator
+import feature_locator
 from tool_box import *
-from save_paths import *
+import save_paths as sp
 from planet_info import *
 
 def lat_lon(x, y, ob_lon, ob_lat, pixscale_km, np_ang, req, rpol):
@@ -151,9 +151,7 @@ class CoordGrid:
 
         self.surf_n = surface_normal(self.lat_g, self.lon_e, self.ob_lon)
         self.mu = emission_angle(self.ob_lat, self.surf_n)
-        
-        self.feature_locator = FeatureLocator(self)
-        self.cloud_locator = CloudLocator(self)
+        self.cloud_locator = feature_locator.CloudLocator(self.deg_per_px)
 
     def edge_detect(self, low_thresh = 0.01, high_thresh = 0.05, sigma = 3, plot = False, xs = 500 ,ys = 700, s = 500):
         '''Uses skimage canny algorithm to find edges of planet, correlates
@@ -330,8 +328,10 @@ class CoordGrid:
             righthalf = self.projected[:,offsetpix:]
             newim[:,uoffsetpix:] = lefthalf #switch left and right halves
             newim[:,:uoffsetpix] = righthalf
-            projection_data = SaveProjection(self.infile_path)
+            projection_data = sp.SaveProjection(self.infile_path)
             projection_data.save_projection(newim)
+
+        self.projected = newim
 
         first = True
         keep_going = 'y'
