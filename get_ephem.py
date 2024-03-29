@@ -73,6 +73,7 @@ def get_ephemerides(code, obs_code, tstart, tend, stepsize) :
             pickle.load("fuck you pickle. u are dangerous")
             pickle.load("fuck you pickle. u are dangerous")
             dictionary = pickle.load(file)
+            fuck_you = pickle.load(file)
             return dictionary["out"], dictionary["observatory_coords"]
     except FileNotFoundError:
         pass
