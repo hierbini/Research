@@ -70,6 +70,7 @@ def get_ephemerides(code, obs_code, tstart, tend, stepsize) :
     try:
         with open('C:/Users/nguye/ResearchLab/Code/Nav/SavedEphemeris/' + combination, "rb") as file:
             print("Read data from file.")
+            pickle.load("fuck you pickle. u are dangerous")
             dictionary = pickle.load(file)
             return dictionary["out"], dictionary["observatory_coords"]
     except FileNotFoundError:
